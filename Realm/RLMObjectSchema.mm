@@ -19,6 +19,7 @@
 #import "RLMObjectSchema_Private.hpp"
 
 #import "RLMArray.h"
+#import "RLMEmbeddedObject.h"
 #import "RLMListBase.h"
 #import "RLMObject_Private.h"
 #import "RLMProperty_Private.hpp"
@@ -111,6 +112,7 @@ using namespace realm;
     schema.objectClass = objectClass;
     schema.accessorClass = objectClass;
     schema.isSwiftClass = isSwift;
+    schema.isEmbedded = [objectClass isSubclassOfClass:[RLMEmbeddedObject class]];
 
     // create array of RLMProperties, inserting properties of superclasses first
     Class cls = objectClass;
@@ -248,6 +250,7 @@ using namespace realm;
     schema->_accessorClass = _objectClass;
     schema->_unmanagedClass = _unmanagedClass;
     schema->_isSwiftClass = _isSwiftClass;
+    schema->_isEmbedded = _isEmbedded;
 
     // call property setter to reset map and primary key
     schema.properties = [[NSArray allocWithZone:zone] initWithArray:_properties copyItems:YES];
@@ -290,6 +293,7 @@ using namespace realm;
     ObjectSchema objectSchema;
     objectSchema.name = self.objectName.UTF8String;
     objectSchema.primary_key = _primaryKeyProperty ? _primaryKeyProperty.columnName.UTF8String : "";
+    objectSchema.is_embedded = ObjectSchema::IsEmbedded(_isEmbedded);
     for (RLMProperty *prop in _properties) {
         Property p = [prop objectStoreCopy:schema];
         p.is_primary = (prop == _primaryKeyProperty);
@@ -304,6 +308,7 @@ using namespace realm;
 + (instancetype)objectSchemaForObjectStoreSchema:(realm::ObjectSchema const&)objectSchema {
     RLMObjectSchema *schema = [RLMObjectSchema new];
     schema.className = @(objectSchema.name.c_str());
+    schema.isEmbedded = objectSchema.is_embedded;
 
     // create array of RLMProperties
     NSMutableArray *properties = [NSMutableArray arrayWithCapacity:objectSchema.persisted_properties.size()];

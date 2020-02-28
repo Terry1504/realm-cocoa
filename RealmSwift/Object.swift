@@ -245,7 +245,7 @@ open class Object: RLMObjectBase, RealmCollectionValue {
      - returns: A token which must be held for as long as you want updates to be delivered.
      */
     public func observe(_ block: @escaping (ObjectChange) -> Void) -> NotificationToken {
-        return RLMObjectAddNotificationBlock(self, { names, oldValues, newValues, error in
+        return RLMObjectBaseAddNotificationBlock(self, { names, oldValues, newValues, error in
             if let error = error {
                 block(.error(error as NSError))
                 return
